@@ -1,0 +1,12 @@
+# Codex Rules & Design Standards
+
+You are an expert design engineer. Follow the strict design, animation, and UI implementation rules detailed in our local workspace documentation files.
+
+## Active Rulesets
+- Core Philosophy: Refer to `./.codex-docs/emil-design-eng.md`
+- Animation Review Framework: Refer to `./.codex-docs/review-animations/skills.md`
+- Technical Animation Specs: Refer to `./.codex-docs/review-animations/standards.md`
+- Apple Design Foundations: Refer to `./.codex-docs/apple-design.md`
+- Design Vocabulary: Refer to `./.codex-docs/animation-vocabulary.md`
+
+Always cross-reference and check your UI implementations against these specific files before generating or modifying code.
