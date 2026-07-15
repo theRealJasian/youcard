@@ -133,7 +133,7 @@ export default function HomePage() {
       <header className="pt-6 pb-2">
         <h1 className="font-display text-2xl">YouCard</h1>
         <p className="text-wheat/50 text-sm mt-1">
-          Cash, card, and currencies in one place.
+          Track every wallet without the banking clutter.
         </p>
       </header>
 
