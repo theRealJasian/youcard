@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import BottomNav from "@/components/BottomNav";
+import DigitalReceiptShare from "@/components/DigitalReceiptShare";
 import { formatAmount } from "@/lib/currency";
 import type { Transaction } from "@/lib/types";
 
@@ -19,7 +20,7 @@ export default function TransactionDetailPage() {
     let active = true;
     supabase
       .from("transactions")
-      .select("*, account:accounts(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*)")
+      .select("*, account:accounts(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*), split_expense:split_expenses(*)")
       .eq("id", id)
       .single()
       .then(
@@ -150,6 +151,19 @@ export default function TransactionDetailPage() {
           </p>
         )}
 
+        {tx.person && (
+          <p className="mt-3 text-sm text-wheat/55">
+            {tx.person_role === "for" ? "For" : "From"} {tx.person.name}
+            {tx.person.relation ? ` · ${tx.person.relation}` : ""}
+          </p>
+        )}
+
+        {tx.split_expense && (
+          <p className="mt-2 text-sm text-wheat/55">
+            Shared expense: {tx.split_expense.title}
+          </p>
+        )}
+
         <ul className="mt-2">
           {tx.items?.map((item, i) => (
             <li
@@ -188,6 +202,8 @@ export default function TransactionDetailPage() {
             {tx.kind === "transfer" ? transferCurrency || currency : currency}
           </span>
         </div>
+
+        {tx.person ? <DigitalReceiptShare tx={tx} /> : null}
       </section>
 
       <BottomNav />

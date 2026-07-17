@@ -14,6 +14,7 @@ import {
   Wallet,
   ArrowLeftRight,
   CalendarClock,
+  Gift,
 } from "lucide-react";
 
 type NavLinkProps = {
@@ -175,6 +176,24 @@ export default function BottomNav() {
                       <p className="font-medium">Planner</p>
                       <p className="text-xs text-wheat/45">
                         Budgets, goals, and recurring templates.
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/gifts"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-between rounded-2xl border border-wheat/10 bg-wheat/5 px-4 py-3 text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="h-9 w-9 rounded-full bg-clay/15 text-clay flex items-center justify-center">
+                      <Gift size={18} />
+                    </span>
+                    <div>
+                      <p className="font-medium">Gifts</p>
+                      <p className="text-xs text-wheat/45">
+                        Plan people, products, and specs.
                       </p>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Camera, X } from "lucide-react";
 import {
@@ -9,22 +10,76 @@ import {
   supabaseAnonKey,
   supabaseUrl,
 } from "@/lib/supabase";
-import type { Account, LineItem } from "@/lib/types";
+import type { Account, GiftPerson, LineItem } from "@/lib/types";
+
+type TransactionMode = "self" | "person" | "repayment" | "family";
+
+const ADD_PRESETS = [
+  {
+    label: "Payback",
+    merchant: "Friend",
+    category: "repayment",
+    note: "Someone paid me back",
+  },
+  {
+    label: "Family",
+    merchant: "Family",
+    category: "family",
+    note: "Money from parents or grandparents",
+  },
+  {
+    label: "Refund",
+    merchant: "Store",
+    category: "refund",
+    note: "Refund or reimbursement",
+  },
+] as const;
+
+const SUB_PRESETS = [
+  {
+    label: "Coffee",
+    merchant: "Coffee shop",
+    category: "food",
+    note: "Coffee or a small treat",
+  },
+  {
+    label: "Snacks",
+    merchant: "Snack run",
+    category: "food",
+    note: "Shared snacks or drinks",
+  },
+  {
+    label: "Gift",
+    merchant: "Gift shop",
+    category: "gifts",
+    note: "Something for a friend",
+  },
+  {
+    label: "Split",
+    merchant: "Shared expense",
+    category: "split",
+    note: "Shared with a friend",
+  },
+] as const;
 
 export default function TransactionForm({
   accountId,
   kind,
+  mode,
 }: {
   accountId: string;
   kind: "add" | "sub";
+  mode?: TransactionMode;
 }) {
   const router = useRouter();
   const [account, setAccount] = useState<Account | null>(null);
+  const [people, setPeople] = useState<GiftPerson[]>([]);
   const [amount, setAmount] = useState("");
   const [items, setItems] = useState<LineItem[]>([]);
   const [merchant, setMerchant] = useState("");
   const [category, setCategory] = useState("");
   const [note, setNote] = useState("");
+  const [personId, setPersonId] = useState("");
   const [receiptPath, setReceiptPath] = useState<string | null>(null);
   const [receiptPreviewUrl, setReceiptPreviewUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -34,20 +89,36 @@ export default function TransactionForm({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
+    let active = true;
+
+    async function load() {
+      if (!isSupabaseConfigured) {
+        if (active) setLoading(false);
+        return;
+      }
+
+      const [accountRes, peopleRes] = await Promise.all([
+        supabase
+          .from("accounts")
+          .select("*")
+          .eq("id", accountId)
+          .single(),
+        supabase.from("gift_people").select("*").order("name", { ascending: true }),
+      ]);
+
+      if (!active) return;
+      if (accountRes.error) console.warn(accountRes.error);
+      if (peopleRes.error) console.warn(peopleRes.error);
+      setAccount((accountRes.data as Account | null) ?? null);
+      setPeople((peopleRes.data as GiftPerson[] | null) ?? []);
       setLoading(false);
-      return;
     }
 
-    supabase
-      .from("accounts")
-      .select("*")
-      .eq("id", accountId)
-      .single()
-      .then(({ data }: { data: Account | null }) => {
-        setAccount(data);
-        setLoading(false);
-      });
+    void load();
+
+    return () => {
+      active = false;
+    };
   }, [accountId]);
 
   const itemTotal = items.reduce((sum, it) => sum + (it.price || 0), 0);
@@ -196,22 +267,61 @@ export default function TransactionForm({
     router.push("/");
   }
 
+  const personMode =
+    (kind === "sub" && mode === "person") ||
+    (kind === "add" && (mode === "repayment" || mode === "family"));
+  const personPrompt =
+    kind === "sub"
+      ? "Who was this for?"
+      : mode === "repayment"
+      ? "Who paid you back?"
+      : "Who sent the money?";
+  const personHelper =
+    kind === "sub"
+      ? "Track how much you spend on each person."
+      : mode === "repayment"
+      ? "Use this for money someone is paying back."
+      : "Use this for money from parents, grandparents, or anyone else.";
+  const presets = kind === "sub" ? SUB_PRESETS : ADD_PRESETS;
+
+  function applyPreset(
+    preset: (typeof SUB_PRESETS)[number] | (typeof ADD_PRESETS)[number]
+  ) {
+    setMerchant(preset.merchant);
+    setCategory(preset.category);
+    setNote(preset.note);
+  }
+
   async function handleFinish() {
     if (!account) return;
     const finalAmount = Number(amount) || itemTotal;
     if (finalAmount <= 0) return;
+    if (personMode && !personId) return;
     setSaving(true);
 
-    const { error: txError } = await supabase.from("transactions").insert({
-      account_id: account.id,
-      kind,
-      amount: finalAmount,
-      items: items.filter((it) => it.name || it.price) ,
-      merchant: merchant.trim() || null,
-      note: note || null,
-      category: category.trim() || null,
-      receipt_path: receiptPath,
-    });
+    const { data: insertedTx, error: txError } = await supabase
+      .from("transactions")
+      .insert({
+        account_id: account.id,
+        kind,
+        amount: finalAmount,
+        items: items.filter((it) => it.name || it.price),
+        merchant: merchant.trim() || null,
+        note: note || null,
+        category: category.trim() || null,
+        person_id: personMode ? personId : null,
+        person_role:
+          kind === "sub"
+            ? personMode
+              ? "for"
+              : null
+            : personMode
+            ? "from"
+            : null,
+        receipt_path: receiptPath,
+      })
+      .select("id")
+      .single();
 
     if (txError) {
       console.warn(txError);
@@ -227,7 +337,10 @@ export default function TransactionForm({
     if (balError) console.warn(balError);
 
     setSaving(false);
-    router.push("/");
+    const insertedId = (insertedTx as { id?: string } | null)?.id;
+    router.push(
+      personMode && insertedId ? `/transactions/${insertedId}` : "/"
+    );
   }
 
   if (!account) {
@@ -291,6 +404,54 @@ export default function TransactionForm({
         </p>
         <p className="text-wheat/50 text-sm mt-0.5">{account.currency}</p>
       </div>
+
+      <div className="mb-5">
+        <p className="text-xs uppercase tracking-[0.24em] text-wheat/40 mb-2">
+          Quick presets
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {presets.map((preset) => (
+            <button
+              key={preset.label}
+              onClick={() => applyPreset(preset)}
+              className="rounded-full border border-wheat/15 px-3 py-1.5 text-xs text-wheat/60"
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {personMode ? (
+        <div className="rounded-3xl border border-wheat/10 bg-wheat/5 p-4 mb-5">
+          <label className="text-xs uppercase tracking-wide text-wheat/40 mb-1 block">
+            {personPrompt}
+          </label>
+          <select
+            value={personId}
+            onChange={(e) => setPersonId(e.target.value)}
+            className="w-full bg-transparent border-b border-wheat/20 py-2 outline-none focus:border-clay"
+          >
+            <option value="">Select a person</option>
+            {people.map((person) => (
+              <option key={person.id} value={person.id}>
+                {person.name}
+                {person.relation ? ` · ${person.relation}` : ""}
+              </option>
+            ))}
+          </select>
+          <p className="mt-2 text-xs text-wheat/45">{personHelper}</p>
+          {people.length === 0 ? (
+            <p className="mt-2 text-xs text-wheat/45">
+              No people yet.{" "}
+              <Link href="/gifts" className="text-clay underline underline-offset-4">
+                Add one in Gifts
+              </Link>
+              .
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <label className="text-xs uppercase tracking-wide text-wheat/40 mb-1">
         Amount
@@ -470,7 +631,7 @@ export default function TransactionForm({
 
       <button
         onClick={handleFinish}
-        disabled={saving || scanning}
+        disabled={saving || scanning || (personMode && !personId)}
         className="mt-6 w-full rounded-full bg-clay text-ink font-medium py-3.5 disabled:opacity-50"
       >
         {saving ? "Saving…" : scanning ? "Scanning…" : "Finish"}

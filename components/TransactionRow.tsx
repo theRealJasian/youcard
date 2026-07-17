@@ -14,6 +14,12 @@ export default function TransactionRow({ tx }: { tx: Transaction }) {
   const currency = tx.account?.currency ?? "";
   const itemCount = tx.items?.length ?? 0;
   const transferCurrency = tx.transfer_account?.currency ?? "";
+  const personLabel = tx.person
+    ? tx.person_role === "for"
+      ? `for ${tx.person.name}`
+      : `from ${tx.person.name}`
+    : "";
+  const splitLabel = tx.split_expense?.title ? ` · split: ${tx.split_expense.title}` : "";
   const transferLabel =
     isTransfer && tx.transfer_account
       ? `${tx.account?.kind === "card" ? "Card" : "Cash"} → ${
@@ -35,6 +41,8 @@ export default function TransactionRow({ tx }: { tx: Transaction }) {
             : tx.account?.kind === "card"
             ? "Card"
             : "Cash"}
+          {personLabel ? ` · ${personLabel}` : ""}
+          {splitLabel}
           {itemCount > 0 ? ` · ${itemCount} item${itemCount > 1 ? "s" : ""}` : ""}
           {tx.merchant ? ` · ${tx.merchant}` : ""}
           {tx.category ? ` · ${tx.category}` : ""}

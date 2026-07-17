@@ -4,37 +4,43 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import BottomNav from "@/components/BottomNav";
 import TransactionRow from "@/components/TransactionRow";
-import type { Transaction } from "@/lib/types";
+import type { GiftPerson, Transaction } from "@/lib/types";
 
 export default function TransactionsPage() {
   const [txs, setTxs] = useState<Transaction[]>([]);
+  const [people, setPeople] = useState<GiftPerson[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [kindFilter, setKindFilter] = useState<
     "all" | "add" | "sub" | "transfer"
   >("all");
+  const [personFilter, setPersonFilter] = useState("all");
+  const [focusFilter, setFocusFilter] = useState<"all" | "person" | "split">(
+    "all"
+  );
 
   useEffect(() => {
     let active = true;
-    supabase
-      .from("transactions")
-      .select("*, account:accounts(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*)")
-      .order("created_at", { ascending: false })
-      .limit(100)
-      .then(
-        ({
-          data,
-          error,
-        }: {
-          data: Transaction[] | null;
-          error: unknown;
-        }) => {
-          if (!active) return;
-          if (error) console.warn(error);
-          setTxs((data as Transaction[]) ?? []);
-          setLoading(false);
-        }
-      );
+
+    async function load() {
+      const [txRes, peopleRes] = await Promise.all([
+        supabase
+          .from("transactions")
+          .select("*, account:accounts(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*), split_expense:split_expenses(*)")
+          .order("created_at", { ascending: false })
+          .limit(100),
+        supabase.from("gift_people").select("*").order("name", { ascending: true }),
+      ]);
+
+      if (!active) return;
+      if (txRes.error) console.warn(txRes.error);
+      if (peopleRes.error) console.warn(peopleRes.error);
+      setTxs((txRes.data as Transaction[] | null) ?? []);
+      setPeople((peopleRes.data as GiftPerson[] | null) ?? []);
+      setLoading(false);
+    }
+
+    void load();
     return () => {
       active = false;
     };
@@ -44,7 +50,12 @@ export default function TransactionsPage() {
     const term = query.trim().toLowerCase();
     return txs.filter((tx) => {
       const matchesKind = kindFilter === "all" || tx.kind === kindFilter;
-      if (!matchesKind) return false;
+      const matchesPerson =
+        personFilter === "all" || tx.person_id === personFilter;
+      const matchesFocus =
+        focusFilter === "all" ||
+        (focusFilter === "person" ? Boolean(tx.person_id) : tx.category === "split");
+      if (!matchesKind || !matchesPerson || !matchesFocus) return false;
       if (!term) return true;
       const fields = [
         tx.account?.kind ?? "",
@@ -53,13 +64,15 @@ export default function TransactionsPage() {
         tx.transfer_account?.currency ?? "",
         tx.category ?? "",
         tx.note ?? "",
+        tx.person?.name ?? "",
+        tx.split_expense?.title ?? "",
         tx.amount.toString(),
       ]
         .join(" ")
         .toLowerCase();
       return fields.includes(term);
     });
-  }, [kindFilter, query, txs]);
+  }, [focusFilter, kindFilter, personFilter, query, txs]);
 
   return (
     <main className="screen">
@@ -90,6 +103,52 @@ export default function TransactionsPage() {
               }`}
             >
               {kind}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {(["all", "person", "split"] as const).map((focus) => (
+            <button
+              key={focus}
+              onClick={() => setFocusFilter(focus)}
+              className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
+                focusFilter === focus
+                  ? "border-clay bg-clay/15 text-clay"
+                  : "border-wheat/15 text-wheat/55"
+              }`}
+            >
+              {focus === "all"
+                ? "All activity"
+                : focus === "person"
+                ? "Person-linked"
+                : "Shared expenses"}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            onClick={() => setPersonFilter("all")}
+            className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
+              personFilter === "all"
+                ? "border-clay bg-clay/15 text-clay"
+                : "border-wheat/15 text-wheat/55"
+            }`}
+          >
+            All people
+          </button>
+          {people.map((person) => (
+            <button
+              key={person.id}
+              onClick={() => setPersonFilter(person.id)}
+              className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
+                personFilter === person.id
+                  ? "border-clay bg-clay/15 text-clay"
+                  : "border-wheat/15 text-wheat/55"
+              }`}
+            >
+              {person.name}
             </button>
           ))}
         </div>

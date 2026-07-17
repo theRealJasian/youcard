@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import AuthSessionWatcher from "@/components/AuthSessionWatcher";
 
 export const metadata: Metadata = {
   title: "YouCard",
@@ -32,7 +33,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased">{children}</body>
-    </html>
+      <body className="font-body antialiased">
+        <AuthSessionWatcher />
+        {children}
+      </body>
+      </html>
   );
 }
