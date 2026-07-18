@@ -7,6 +7,7 @@ import { Delete } from "lucide-react";
 
 const PIN_LENGTH = 6;
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "back"];
+const LAST_ACTIVITY_KEY = "youcard_last_activity";
 
 function LoginInner() {
   const router = useRouter();
@@ -25,8 +26,8 @@ function LoginInner() {
     setSubmitting(false);
 
     if (res.ok) {
+      window.localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
       router.replace(params.get("next") || "/");
-      router.refresh();
     } else {
       setError(true);
       setPin("");
