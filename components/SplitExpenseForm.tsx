@@ -228,6 +228,7 @@ export default function SplitExpenseForm({
         <button
           onClick={handleSave}
           disabled={saving || selectedPeople.length === 0}
+          aria-busy={saving}
           className="rounded-2xl bg-clay text-ink px-4 py-3 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50"
         >
           <Plus size={16} />

@@ -629,13 +629,14 @@ export default function TransactionForm({
         className="bg-transparent border-b border-wheat/15 py-2 outline-none focus:border-clay"
       />
 
-      <button
-        onClick={handleFinish}
-        disabled={saving || scanning || (personMode && !personId)}
-        className="mt-6 w-full rounded-full bg-clay text-ink font-medium py-3.5 disabled:opacity-50"
-      >
-        {saving ? "Saving…" : scanning ? "Scanning…" : "Finish"}
-      </button>
+        <button
+          onClick={handleFinish}
+          disabled={saving || scanning || (personMode && !personId)}
+          aria-busy={saving || scanning}
+          className="mt-6 w-full rounded-full bg-clay text-ink font-medium py-3.5 disabled:opacity-50"
+        >
+          {saving ? "Saving…" : scanning ? "Scanning…" : "Finish"}
+        </button>
 
       <input
         ref={fileInputRef}

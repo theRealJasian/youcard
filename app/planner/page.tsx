@@ -61,7 +61,7 @@ export default function PlannerPage() {
         supabase.from("accounts").select("*").order("kind", { ascending: true }).order("sort_order", { ascending: true }),
         supabase
           .from("transactions")
-          .select("*, account:accounts(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*)")
+          .select("*, account:accounts!transactions_account_id_fkey(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*)")
           .order("created_at", { ascending: false }),
         supabase.from("budgets").select("*").order("created_at", { ascending: false }),
         supabase.from("goals").select("*").order("created_at", { ascending: false }),
@@ -117,7 +117,7 @@ export default function PlannerPage() {
       supabase.from("recurring_rules").select("*").order("created_at", { ascending: false }),
       supabase
         .from("transactions")
-        .select("*, account:accounts(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*)")
+        .select("*, account:accounts!transactions_account_id_fkey(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*)")
         .order("created_at", { ascending: false }),
       supabase.from("accounts").select("*").order("kind", { ascending: true }).order("sort_order", { ascending: true }),
     ]);

@@ -468,6 +468,26 @@ export default function GiftsPage() {
           </button>
         </div>
 
+        <div className="mb-4 rounded-3xl border border-wheat/10 bg-wheat/5 p-4 grid gap-3">
+          <label className="grid gap-1.5">
+            <span className="text-[11px] uppercase tracking-[0.24em] text-wheat/40">
+              Product filter
+            </span>
+            <select
+              value={productFilter}
+              onChange={(e) => setProductFilter(e.target.value)}
+              className="w-full bg-transparent border border-wheat/15 rounded-2xl px-4 py-3 text-sm outline-none focus:border-clay"
+            >
+              <option value="all">All products</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
         <div className="grid gap-3">
           <input
             value={productName}
@@ -695,32 +715,6 @@ export default function GiftsPage() {
         </div>
 
         <div className="mt-5">
-          <div className="flex flex-wrap gap-2 mb-3">
-            <button
-              onClick={() => setProductFilter("all")}
-              className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
-                productFilter === "all"
-                  ? "border-clay bg-clay/15 text-clay"
-                  : "border-wheat/15 text-wheat/55"
-              }`}
-            >
-              All products
-            </button>
-            {products.map((product) => (
-              <button
-                key={product.id}
-                onClick={() => setProductFilter(product.id)}
-                className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
-                  productFilter === product.id
-                    ? "border-clay bg-clay/15 text-clay"
-                    : "border-wheat/15 text-wheat/55"
-                }`}
-              >
-                {product.name}
-              </button>
-            ))}
-          </div>
-
           {filteredProducts.length === 0 ? (
             <p className="text-wheat/40 text-sm py-4 text-center">
               No products yet. Add one above to start building the catalog.
@@ -811,7 +805,6 @@ export default function GiftsPage() {
                     ) : (
                       <p className="mt-4 text-xs text-wheat/40">No variants yet.</p>
                     )}
-
                     <p className="mt-4 text-xs text-wheat/45">
                       {productAssignments.length === 0
                         ? "No assignments yet."
@@ -937,12 +930,9 @@ export default function GiftsPage() {
                         {person.notes || "No notes yet"}
                       </p>
                     </Link>
-                    <button
-                      onClick={() => setPersonFilter(person.id)}
-                      className="mt-2 rounded-full border border-wheat/15 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-wheat/55"
-                    >
-                      Filter
-                    </button>
+                    <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-wheat/40">
+                      Use the person dropdown above to filter assignments.
+                    </p>
                   </div>
                   <div className="flex items-center gap-1">
                     <button
@@ -978,56 +968,44 @@ export default function GiftsPage() {
           />
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setPersonFilter("all")}
-            className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
-              personFilter === "all"
-                ? "border-clay bg-clay/15 text-clay"
-                : "border-wheat/15 text-wheat/55"
-            }`}
-          >
-            All people
-          </button>
-          {people.map((person) => (
-            <button
-              key={person.id}
-              onClick={() => setPersonFilter(person.id)}
-              className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
-                personFilter === person.id
-                  ? "border-clay bg-clay/15 text-clay"
-                  : "border-wheat/15 text-wheat/55"
-              }`}
+        <div className="mt-3 grid gap-3 rounded-3xl border border-wheat/10 bg-wheat/5 p-4">
+          <label className="grid gap-1.5">
+            <span className="text-[11px] uppercase tracking-[0.24em] text-wheat/40">
+              Person filter
+            </span>
+            <select
+              value={personFilter}
+              onChange={(e) => setPersonFilter(e.target.value)}
+              className="w-full bg-transparent border border-wheat/15 rounded-2xl px-4 py-3 text-sm outline-none focus:border-clay"
             >
-              {person.name}
-            </button>
-          ))}
-        </div>
+              <option value="all">All people</option>
+              {people.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            onClick={() => setStatusFilter("all")}
-            className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
-              statusFilter === "all"
-                ? "border-clay bg-clay/15 text-clay"
-                : "border-wheat/15 text-wheat/55"
-            }`}
-          >
-            All statuses
-          </button>
-          {STATUSES.map((status) => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
-                statusFilter === status
-                  ? "border-clay bg-clay/15 text-clay"
-                  : "border-wheat/15 text-wheat/55"
-              }`}
+          <label className="grid gap-1.5">
+            <span className="text-[11px] uppercase tracking-[0.24em] text-wheat/40">
+              Status filter
+            </span>
+            <select
+              value={statusFilter}
+              onChange={(e) =>
+                setStatusFilter(e.target.value as (typeof STATUSES)[number] | "all")
+              }
+              className="w-full bg-transparent border border-wheat/15 rounded-2xl px-4 py-3 text-sm outline-none focus:border-clay capitalize"
             >
-              {status}
-            </button>
-          ))}
+              <option value="all">All statuses</option>
+              {STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </section>
 
@@ -1111,14 +1089,9 @@ export default function GiftsPage() {
                     ) : null}
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <button
-                      onClick={() => setPersonFilter(assignment.person_id)}
-                      className="rounded-full border border-wheat/15 px-3 py-1.5 text-xs text-wheat/60"
-                    >
-                      Filter by person
-                    </button>
-                  </div>
+                  <p className="mt-4 text-xs text-wheat/45">
+                    Use the dropdown filters above to narrow this list.
+                  </p>
                 </article>
               );
             })}

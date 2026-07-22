@@ -19,6 +19,47 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+button,
+a,
+input[type="button"],
+input[type="submit"],
+summary {
+  touch-action: manipulation;
+}
+
+button,
+a,
+input[type="button"],
+input[type="submit"] {
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease,
+    filter 120ms ease;
+}
+
+button:not(:disabled):active,
+a:active,
+input[type="button"]:active,
+input[type="submit"]:active {
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(1.05);
+}
+
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled {
+  cursor: progress;
+}
+
+button[aria-busy="true"],
+a[aria-busy="true"] {
+  cursor: progress;
+}
+
 .screen {
   min-height: 100dvh;
   max-width: 480px;

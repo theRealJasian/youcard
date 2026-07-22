@@ -169,6 +169,7 @@ export default function TransferForm() {
           <button
             onClick={handleTransfer}
             disabled={saving || !fromId || !toId || fromId === toId}
+            aria-busy={saving}
             className="flex-1 rounded-full bg-clay text-ink font-medium py-3 disabled:opacity-50"
           >
             {saving ? "Transferring…" : "Transfer"}

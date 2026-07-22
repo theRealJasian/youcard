@@ -298,6 +298,7 @@ export default function DigitalReceiptShare({ tx }: { tx: Transaction }) {
         <button
           onClick={downloadReceipt}
           disabled={saving}
+          aria-busy={saving}
           className="rounded-2xl border border-wheat/15 px-3 py-3 text-xs flex items-center justify-center gap-2 text-wheat/75 disabled:opacity-50"
         >
           <Download size={14} />
@@ -306,6 +307,7 @@ export default function DigitalReceiptShare({ tx }: { tx: Transaction }) {
         <button
           onClick={shareReceipt}
           disabled={saving}
+          aria-busy={saving}
           className="rounded-2xl border border-wheat/15 px-3 py-3 text-xs flex items-center justify-center gap-2 text-wheat/75 disabled:opacity-50"
         >
           <Share2 size={14} />

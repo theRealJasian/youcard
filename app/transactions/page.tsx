@@ -26,7 +26,7 @@ export default function TransactionsPage() {
       const [txRes, peopleRes] = await Promise.all([
         supabase
           .from("transactions")
-          .select("*, account:accounts(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*), split_expense:split_expenses(*)")
+          .select("*, account:accounts!transactions_account_id_fkey(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*), split_expense:split_expenses(*)")
           .order("created_at", { ascending: false })
           .limit(100),
         supabase.from("gift_people").select("*").order("name", { ascending: true }),
@@ -91,66 +91,55 @@ export default function TransactionsPage() {
           className="w-full bg-transparent border border-wheat/15 rounded-2xl px-4 py-3 text-sm outline-none focus:border-clay"
         />
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          {(["all", "add", "sub", "transfer"] as const).map((kind) => (
-            <button
-              key={kind}
-              onClick={() => setKindFilter(kind)}
-              className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
-                kindFilter === kind
-                  ? "border-clay bg-clay/15 text-clay"
-                  : "border-wheat/15 text-wheat/55"
-              }`}
+        <div className="mt-3 grid gap-3 rounded-3xl border border-wheat/10 bg-wheat/5 p-4">
+          <label className="grid gap-1.5">
+            <span className="text-[11px] uppercase tracking-[0.24em] text-wheat/40">
+              Transaction type
+            </span>
+            <select
+              value={kindFilter}
+              onChange={(e) => setKindFilter(e.target.value as typeof kindFilter)}
+              className="w-full bg-transparent border border-wheat/15 rounded-2xl px-4 py-3 text-sm outline-none focus:border-clay"
             >
-              {kind}
-            </button>
-          ))}
-        </div>
+              <option value="all">All transactions</option>
+              <option value="add">Add</option>
+              <option value="sub">Subtract</option>
+              <option value="transfer">Transfer</option>
+            </select>
+          </label>
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          {(["all", "person", "split"] as const).map((focus) => (
-            <button
-              key={focus}
-              onClick={() => setFocusFilter(focus)}
-              className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
-                focusFilter === focus
-                  ? "border-clay bg-clay/15 text-clay"
-                  : "border-wheat/15 text-wheat/55"
-              }`}
+          <label className="grid gap-1.5">
+            <span className="text-[11px] uppercase tracking-[0.24em] text-wheat/40">
+              Activity focus
+            </span>
+            <select
+              value={focusFilter}
+              onChange={(e) => setFocusFilter(e.target.value as typeof focusFilter)}
+              className="w-full bg-transparent border border-wheat/15 rounded-2xl px-4 py-3 text-sm outline-none focus:border-clay"
             >
-              {focus === "all"
-                ? "All activity"
-                : focus === "person"
-                ? "Person-linked"
-                : "Shared expenses"}
-            </button>
-          ))}
-        </div>
+              <option value="all">All activity</option>
+              <option value="person">Person-linked</option>
+              <option value="split">Shared expenses</option>
+            </select>
+          </label>
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            onClick={() => setPersonFilter("all")}
-            className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
-              personFilter === "all"
-                ? "border-clay bg-clay/15 text-clay"
-                : "border-wheat/15 text-wheat/55"
-            }`}
-          >
-            All people
-          </button>
-          {people.map((person) => (
-            <button
-              key={person.id}
-              onClick={() => setPersonFilter(person.id)}
-              className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.18em] border transition ${
-                personFilter === person.id
-                  ? "border-clay bg-clay/15 text-clay"
-                  : "border-wheat/15 text-wheat/55"
-              }`}
+          <label className="grid gap-1.5">
+            <span className="text-[11px] uppercase tracking-[0.24em] text-wheat/40">
+              Person
+            </span>
+            <select
+              value={personFilter}
+              onChange={(e) => setPersonFilter(e.target.value)}
+              className="w-full bg-transparent border border-wheat/15 rounded-2xl px-4 py-3 text-sm outline-none focus:border-clay"
             >
-              {person.name}
-            </button>
-          ))}
+              <option value="all">All people</option>
+              {people.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         {loading ? (
