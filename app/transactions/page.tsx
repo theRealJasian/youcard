@@ -26,7 +26,7 @@ export default function TransactionsPage() {
       const [txRes, peopleRes] = await Promise.all([
         supabase
           .from("transactions")
-          .select("*, account:accounts!transactions_account_id_fkey(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*), split_expense:split_expenses(*)")
+          .select("*, account:accounts!transactions_account_id_fkey(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*)")
           .order("created_at", { ascending: false })
           .limit(100),
         supabase.from("gift_people").select("*").order("name", { ascending: true }),

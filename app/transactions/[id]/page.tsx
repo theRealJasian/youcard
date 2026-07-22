@@ -20,7 +20,7 @@ export default function TransactionDetailPage() {
     let active = true;
     supabase
       .from("transactions")
-      .select("*, account:accounts!transactions_account_id_fkey(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*), split_expense:split_expenses(*)")
+      .select("*, account:accounts!transactions_account_id_fkey(*), transfer_account:accounts!transactions_transfer_account_id_fkey(*), person:gift_people!transactions_person_id_fkey(*), split_expense:split_expenses!transactions_split_expense_id_fkey(*)")
       .eq("id", id)
       .single()
       .then(
